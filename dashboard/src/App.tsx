@@ -16,6 +16,15 @@ import AdminPage from './pages/AdminPage';
 
 // ─── PROTECTED ROUTE FILTER ──────────────────────────────────────────────────
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
+  // Extract token from query params if redirected from Discord OAuth callback
+  const params = new URLSearchParams(window.location.search);
+  const urlToken = params.get('token');
+  if (urlToken) {
+    localStorage.setItem('token', urlToken);
+    // Clean up the URL query string
+    window.history.replaceState({}, document.title, window.location.pathname);
+  }
+
   const token = localStorage.getItem('token');
   const sessionTokenCookie = document.cookie.includes('token=');
 

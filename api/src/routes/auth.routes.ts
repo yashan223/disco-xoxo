@@ -130,7 +130,7 @@ router.get(
         sameSite: 'lax',
       });
 
-      res.redirect(`${env.DASHBOARD_URL}/servers`);
+      res.redirect(`${env.DASHBOARD_URL}/servers?token=${token}`);
     } catch (err) {
       logger.error(`Discord callback error: ${(err as Error).message}`);
       res.redirect(`${env.DASHBOARD_URL}/login?error=auth_failed`);
