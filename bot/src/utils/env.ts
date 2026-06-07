@@ -1,5 +1,11 @@
+import dotenv from 'dotenv';
+import path from 'path';
 import { z } from 'zod';
 import { logger } from './logger';
+
+// Load environment variables from .env file
+dotenv.config({ path: path.resolve(process.cwd(), '.env') });
+dotenv.config({ path: path.resolve(process.cwd(), '../.env') });
 
 const envSchema = z.object({
   DISCORD_TOKEN: z.string().min(1, 'DISCORD_TOKEN is required'),
