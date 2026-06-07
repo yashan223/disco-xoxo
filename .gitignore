@@ -1,0 +1,43 @@
+# Dependency directories
+node_modules/
+**/node_modules/
+
+# Build outputs
+dist/
+**/dist/
+build/
+**/build/
+out/
+**/out/
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Logs
+logs/
+**/logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# OS Files
+.DS_Store
+Thumbs.db
+
+# Test coverage
+coverage/
+**/coverage/
+.nyc_output/
+
+# TypeScript build info
+*.tsbuildinfo
+
+# Service backups & local SSL certs
+ssl/
+backups/
+mongodb_data/
+redis_data/

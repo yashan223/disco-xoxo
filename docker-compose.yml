@@ -1,0 +1,103 @@
+version: '3.9'
+
+services:
+  # ─── MongoDB ──────────────────────────────────────────
+  mongo:
+    image: mongo:7
+    container_name: disco-xoxo-mongo
+    restart: unless-stopped
+    ports:
+      - '27017:27017'
+    volumes:
+      - mongo_data:/data/db
+      - ./scripts/mongo-init.js:/docker-entrypoint-initdb.d/init.js:ro
+    environment:
+      MONGO_INITDB_DATABASE: disco-xoxo
+    networks:
+      - disco-net
+
+  # ─── Redis ────────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    container_name: disco-xoxo-redis
+    restart: unless-stopped
+    ports:
+      - '6379:6379'
+    volumes:
+      - redis_data:/data
+    networks:
+      - disco-net
+
+  # ─── API (Express + Socket.IO) ────────────────────────
+  api:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+      target: development
+    container_name: disco-xoxo-api
+    restart: unless-stopped
+    ports:
+      - '3001:3001'
+    env_file:
+      - .env
+    environment:
+      - NODE_ENV=development
+      - MONGODB_URI=mongodb://mongo:27017/disco-xoxo
+      - REDIS_URL=redis://redis:6379
+    volumes:
+      - ./api/src:/app/src
+      - ./api/logs:/app/logs
+    depends_on:
+      - mongo
+      - redis
+    networks:
+      - disco-net
+
+  # ─── Discord Bot ──────────────────────────────────────
+  bot:
+    build:
+      context: ./bot
+      dockerfile: Dockerfile
+      target: development
+    container_name: disco-xoxo-bot
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      - NODE_ENV=development
+      - API_URL=http://api:3001
+    volumes:
+      - ./bot/src:/app/src
+      - ./bot/logs:/app/logs
+    depends_on:
+      - mongo
+      - redis
+      - api
+    networks:
+      - disco-net
+
+  # ─── Dashboard (React served by Nginx) ────────────────
+  dashboard:
+    build:
+      context: ./dashboard
+      dockerfile: Dockerfile
+      target: development
+    container_name: disco-xoxo-dashboard
+    restart: unless-stopped
+    ports:
+      - '3000:3000'
+    environment:
+      - VITE_API_URL=http://localhost:3001
+      - VITE_SOCKET_URL=http://localhost:3001
+    volumes:
+      - ./dashboard/src:/app/src
+    networks:
+      - disco-net
+
+volumes:
+  mongo_data:
+  redis_data:
+
+networks:
+  disco-net:
+    driver: bridge
