@@ -55,6 +55,7 @@ router.get('/stats/:guildId', statsCtrl.getStats);
 
 // ─── Logs ──────────────────────────────────────────────────────────────────
 router.get('/logs/:guildId', statsCtrl.getLogs);
+router.get('/system-logs', statsCtrl.getSystemLogs);
 
 // ─── Health ────────────────────────────────────────────────────────────────
 router.get('/health', (_, res) => {

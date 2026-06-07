@@ -65,4 +65,5 @@ export const api = {
   getHistory: (guildId: string) => apiClient.get(`/api/history/${guildId}`),
   getStats: (guildId: string) => apiClient.get(`/api/stats/${guildId}`),
   getLogs: (guildId: string, limit = 50) => apiClient.get(`/api/logs/${guildId}`, { params: { limit } }),
+  getSystemLogs: (limit = 100) => apiClient.get('/api/system-logs', { params: { limit } }),
 };
