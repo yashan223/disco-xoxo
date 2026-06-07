@@ -7,7 +7,12 @@ import { Track } from '../structures/Track';
 import { GuildMember, VoiceChannel } from 'discord.js';
 
 export const redisPub = new Redis(env.REDIS_URL);
-export const redisSub = new Redis(env.REDIS_URL);
+export const redisSub = new Redis(env.REDIS_URL, {
+  maxRetriesPerRequest: null,
+  enableReadyCheck: false,
+  disableClientInfo: true,
+});
+
 
 redisPub.on('error', (err) => logger.error(`Redis Pub Error: ${err.message}`));
 redisSub.on('error', (err) => logger.error(`Redis Sub Error: ${err.message}`));
