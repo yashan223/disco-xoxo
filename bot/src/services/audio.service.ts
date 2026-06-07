@@ -51,6 +51,8 @@ export class AudioService {
       '-n', `Disco-XOXO-${guildId}`,
       '-u', env.SPOTIFY_BOT_USERNAME,
       '-p', env.SPOTIFY_BOT_PASSWORD,
+      '--ap-port', '443',
+      '--disable-discovery'
     ];
 
     if (!isWindows && fs.existsSync(pipePath)) {
