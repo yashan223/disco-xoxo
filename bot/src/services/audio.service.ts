@@ -69,7 +69,7 @@ export class AudioService {
     librespot.stderr.on('data', (data) => {
       const logMsg = data.toString().trim();
       if (logMsg) {
-        logger.debug(`[librespot-${guildId}] ${logMsg}`);
+        logger.error(`[librespot-${guildId}] ${logMsg}`);
       }
     });
 

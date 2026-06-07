@@ -14,6 +14,7 @@ import apiRoutes from './routes/api.routes';
 import { errorHandler, notFoundHandler } from './middleware/error.middleware';
 
 const app = express();
+app.set('trust proxy', 1); // Trust the reverse proxy (e.g. Nginx, Docker) to get accurate IPs for rate limiting
 const server = createServer(app);
 
 // ─── Middleware ──────────────────────────────────────────────────────────────
