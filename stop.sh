@@ -64,6 +64,11 @@ if pgrep -f "disco-xoxo.*ts-node-dev" > /dev/null; then
   pkill -f "disco-xoxo.*ts-node-dev"
 fi
 
+if command -v pkill &> /dev/null; then
+  echo -e "Killing stray librespot players..."
+  pkill -f "librespot" || true
+fi
+
 echo -e "${GREEN}================================================================${NC}"
 echo -e "${GREEN}                   ALL SERVICES STOPPED                         ${NC}"
 echo -e "${GREEN}================================================================${NC}"
