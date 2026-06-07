@@ -49,6 +49,8 @@ export const api = {
   // Spotify linking
   linkSpotify: () => apiClient.post('/api/link-spotify'),
   unlinkSpotify: () => apiClient.post('/api/unlink-spotify'),
+  linkBotSpotify: () => apiClient.post('/api/link-bot-spotify'),
+  unlinkBotSpotify: () => apiClient.post('/api/unlink-bot-spotify'),
   getPlaylists: () => apiClient.get('/api/playlists'),
   getLikedSongs: (limit = 50, offset = 0) => apiClient.get('/api/liked-songs', { params: { limit, offset } }),
   getSavedAlbums: () => apiClient.get('/api/saved-albums'),

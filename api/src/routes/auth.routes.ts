@@ -176,38 +176,66 @@ router.get(
 
       const storedState = req.cookies?.spotify_state;
       const userId = req.cookies?.spotify_user;
+      const isBot = req.cookies?.spotify_is_bot === 'true';
 
-      if (!state || state !== storedState || !userId) {
+      if (!state || state !== storedState || (!userId && !isBot)) {
         res.redirect(`${env.DASHBOARD_URL}/profile?error=invalid_state`);
         return;
       }
       res.clearCookie('spotify_state');
       res.clearCookie('spotify_user');
+      res.clearCookie('spotify_is_bot');
 
       const tokens = await spotifyService.exchangeCode(code as string);
       const profile = await spotifyService.getSpotifyProfile(tokens.access_token);
 
-      await User.findByIdAndUpdate(userId, {
-        $set: {
-          spotifyId: profile.id,
-          spotifyAccessToken: tokens.access_token,
-          spotifyRefreshToken: tokens.refresh_token,
-          spotifyTokenExpiry: new Date(Date.now() + tokens.expires_in * 1000),
-          spotifyDisplayName: profile.display_name,
-        },
-      });
+      if (isBot) {
+        await User.findOneAndUpdate(
+          { discordId: 'bot' },
+          {
+            $set: {
+              username: 'Bot',
+              spotifyId: profile.id,
+              spotifyAccessToken: tokens.access_token,
+              spotifyRefreshToken: tokens.refresh_token,
+              spotifyTokenExpiry: new Date(Date.now() + tokens.expires_in * 1000),
+              spotifyDisplayName: profile.display_name,
+            },
+          },
+          { upsert: true }
+        );
 
-      await Log.create({
-        guildId: 'global',
-        userId,
-        action: 'SPOTIFY_LINK',
-        timestamp: new Date(),
-      }).catch(() => {});
+        await Log.create({
+          guildId: 'global',
+          userId: 'bot',
+          action: 'SPOTIFY_LINK',
+          timestamp: new Date(),
+        }).catch(() => {});
 
-      res.redirect(`${env.DASHBOARD_URL}/profile?spotify=linked`);
+        res.redirect(`${env.DASHBOARD_URL}/servers`); // Admin could be from any server, just redirect to servers for simplicity
+      } else {
+        await User.findByIdAndUpdate(userId, {
+          $set: {
+            spotifyId: profile.id,
+            spotifyAccessToken: tokens.access_token,
+            spotifyRefreshToken: tokens.refresh_token,
+            spotifyTokenExpiry: new Date(Date.now() + tokens.expires_in * 1000),
+            spotifyDisplayName: profile.display_name,
+          },
+        });
+
+        await Log.create({
+          guildId: 'global',
+          userId,
+          action: 'SPOTIFY_LINK',
+          timestamp: new Date(),
+        }).catch(() => {});
+
+        res.redirect(`${env.DASHBOARD_URL}/servers`); // Profile doesn't exist, redirect to servers instead
+      }
     } catch (err) {
       logger.error(`Spotify callback error: ${(err as Error).message}`);
-      res.redirect(`${env.DASHBOARD_URL}/profile?error=spotify_failed`);
+      res.redirect(`${env.DASHBOARD_URL}/servers`); // Change to servers since profile doesn't exist
     }
   }
 );

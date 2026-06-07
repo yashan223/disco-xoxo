@@ -31,6 +31,29 @@ export async function linkSpotify(req: Request, res: Response, next: NextFunctio
   }
 }
 
+export async function linkBotSpotify(req: Request, res: Response, next: NextFunction): Promise<void> {
+  try {
+    const state = crypto.randomBytes(16).toString('hex');
+    res.cookie('spotify_state', state, {
+      httpOnly: true,
+      secure: env.NODE_ENV === 'production',
+      maxAge: 5 * 60 * 1000,
+      sameSite: 'lax',
+    });
+    res.cookie('spotify_is_bot', 'true', {
+      httpOnly: true,
+      secure: env.NODE_ENV === 'production',
+      maxAge: 5 * 60 * 1000,
+      sameSite: 'lax',
+    });
+
+    const redirectUrl = spotifyService.getAuthUrl(state);
+    res.json({ redirectUrl });
+  } catch (err) {
+    next(err);
+  }
+}
+
 export async function unlinkSpotify(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
     const user = await User.findById(req.user!.userId);
@@ -47,6 +70,27 @@ export async function unlinkSpotify(req: Request, res: Response, next: NextFunct
     await user.save();
 
     res.json({ success: true, message: 'Spotify account unlinked successfully' });
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function unlinkBotSpotify(req: Request, res: Response, next: NextFunction): Promise<void> {
+  try {
+    const user = await User.findOne({ discordId: 'bot' });
+    if (!user) {
+      res.status(404).json({ error: 'NOT_FOUND', message: 'Bot user not found', statusCode: 404 });
+      return;
+    }
+
+    user.spotifyId = undefined;
+    user.spotifyAccessToken = undefined;
+    user.spotifyRefreshToken = undefined;
+    user.spotifyTokenExpiry = undefined;
+    user.spotifyDisplayName = undefined;
+    await user.save();
+
+    res.json({ success: true, message: 'Bot Spotify account unlinked successfully' });
   } catch (err) {
     next(err);
   }

@@ -37,6 +37,8 @@ router.delete('/queue/:guildId', queueCtrl.clearQueue);
 // ─── Spotify ───────────────────────────────────────────────────────────────
 router.post('/link-spotify', spotifyCtrl.linkSpotify);
 router.post('/unlink-spotify', spotifyCtrl.unlinkSpotify);
+router.post('/link-bot-spotify', spotifyCtrl.linkBotSpotify);
+router.post('/unlink-bot-spotify', spotifyCtrl.unlinkBotSpotify);
 router.get('/playlists', spotifyCtrl.getPlaylists);
 router.get('/liked-songs', spotifyCtrl.getLikedSongs);
 router.get('/saved-albums', spotifyCtrl.getSavedAlbums);

@@ -68,6 +68,17 @@ export default function AdminPage() {
     }
   };
 
+  const handleLinkBot = async () => {
+    try {
+      const res = await api.linkBotSpotify();
+      if (res.data?.redirectUrl) {
+        window.location.href = res.data.redirectUrl;
+      }
+    } catch (err: any) {
+      toast.error('Failed to initiate bot Spotify linking');
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex justify-center items-center py-20">
@@ -215,6 +226,21 @@ export default function AdminPage() {
           </button>
         </div>
       </form>
+
+      {/* Global Bot Settings */}
+      <div className="glass-panel p-8 rounded-3xl border border-white/5 space-y-6 max-w-2xl mt-8">
+        <div>
+           <h3 className="font-extrabold text-xl text-white flex items-center gap-2">Bot Spotify Account</h3>
+           <p className="text-sm text-gray-400 mt-1">
+             The bot requires a dedicated Spotify Premium account linked to control its playback. Link it here.
+           </p>
+        </div>
+        <div className="flex gap-4">
+          <button type="button" onClick={handleLinkBot} className="bg-spotify-green text-spotify-dark hover:scale-102 active:scale-98 px-6 py-3.5 rounded-2xl font-bold flex items-center gap-2 transition-all shadow-md shadow-spotify-green/10">
+            Link Bot Spotify Account
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
