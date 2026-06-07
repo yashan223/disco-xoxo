@@ -73,11 +73,6 @@ services:
       target: production
     container_name: disco-xoxo-dashboard-prod
     restart: always
-    ports:
-      - '80:80'
-      - '443:443'
-    volumes:
-      - ./ssl:/etc/nginx/ssl:ro
     networks:
       - disco-net
 
