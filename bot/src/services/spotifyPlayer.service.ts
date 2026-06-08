@@ -32,7 +32,14 @@ export const spotifyPlayerService = {
   async play(guildId: string, trackUris: string[]): Promise<void> {
     try {
       const token = await this.getBotAccessToken();
-      const deviceId = await this.findDevice(token, `Disco-XOXO-${guildId}`);
+      
+      // Poll for the device for up to 10 seconds (librespot takes a few seconds to fully connect)
+      let deviceId = null;
+      for (let i = 0; i < 10; i++) {
+        deviceId = await this.findDevice(token, `Disco-XOXO-${guildId}`);
+        if (deviceId) break;
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+      }
 
       if (!deviceId) {
         throw new Error('Librespot device not found. Please wait for it to connect.');
