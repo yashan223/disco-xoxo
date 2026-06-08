@@ -108,6 +108,10 @@ export const spotifyService = {
       'user-library-read',
       'user-library-modify',
       'user-top-read',
+      'streaming',
+      'user-read-playback-state',
+      'user-modify-playback-state',
+      'user-read-currently-playing'
     ].join(' ');
     const params = new URLSearchParams({
       response_type: 'code',
