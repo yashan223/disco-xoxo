@@ -5,6 +5,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { env } from '../utils/env';
 import { logger } from '../utils/logger';
+import { spotifyPlayerService } from './spotifyPlayer.service';
 
 export class AudioService {
   private static processes = new Map<string, ChildProcess>();
@@ -47,10 +48,18 @@ export class AudioService {
 
     logger.info(`Starting librespot for guild: ${guildId}`);
 
+    // Get the bot's Spotify access token
+    let accessToken = '';
+    try {
+      accessToken = await spotifyPlayerService.getBotAccessToken();
+    } catch (err) {
+      logger.error(`Failed to get bot access token: ${(err as Error).message}`);
+      throw err;
+    }
+
     const args = [
       '-n', `Disco-XOXO-${guildId}`,
-      '-u', env.SPOTIFY_BOT_USERNAME,
-      '-p', env.SPOTIFY_BOT_PASSWORD,
+      '-k', accessToken,
       '--ap-port', '443',
       '--disable-discovery'
     ];
