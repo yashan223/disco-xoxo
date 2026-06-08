@@ -115,8 +115,29 @@ export class AudioService {
 
   public static createResource(stream: Readable): AudioResource {
     // Librespot outputs raw PCM: 44.1kHz, 16-bit, stereo, signed-integer
-    // We pass it to FFmpeg or demuxProbe to format correctly for discord.js voice
-    return createAudioResource(stream, {
+    // Discord strictly requires 48kHz, 16-bit, stereo for StreamType.Raw
+    const ffmpegArgs = [
+      '-f', 's16le',
+      '-ar', '44100',
+      '-ac', '2',
+      '-i', 'pipe:0',
+      '-f', 's16le',
+      '-ar', '48000',
+      '-ac', '2',
+      'pipe:1'
+    ];
+
+    const ffmpegProcess = spawn('ffmpeg', ffmpegArgs, {
+      stdio: ['pipe', 'pipe', 'ignore'] // ignore stderr to prevent spam
+    });
+
+    stream.pipe(ffmpegProcess.stdin);
+
+    ffmpegProcess.on('error', (err) => {
+      logger.error(`FFmpeg process error: ${err.message}`);
+    });
+
+    return createAudioResource(ffmpegProcess.stdout, {
       inputType: StreamType.Raw,
     });
   }
