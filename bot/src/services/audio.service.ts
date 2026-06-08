@@ -14,38 +14,6 @@ export class AudioService {
     // Kill existing process for the guild if any
     this.stopPlayer(guildId);
 
-    const pipeName = `spotify_${guildId}.fifo`;
-    const tempDir = path.join(process.cwd(), 'temp');
-    if (!fs.existsSync(tempDir)) {
-      fs.mkdirSync(tempDir, { recursive: true });
-    }
-    const pipePath = path.join(tempDir, pipeName);
-
-    // Clean up old pipe file if exists
-    if (fs.existsSync(pipePath)) {
-      try {
-        fs.unlinkSync(pipePath);
-      } catch (err) {
-        logger.error(`Error deleting old pipe file: ${(err as Error).message}`);
-      }
-    }
-
-    // Try creating named pipe using mkfifo on Linux/Unix
-    const isWindows = process.platform === 'win32';
-    if (!isWindows) {
-      try {
-        const mkfifo = spawn('mkfifo', [pipePath]);
-        await new Promise<void>((resolve, reject) => {
-          mkfifo.on('close', (code) => {
-            if (code === 0) resolve();
-            else reject(new Error(`mkfifo exited with code ${code}`));
-          });
-        });
-      } catch (err) {
-        logger.warn(`mkfifo failed, falling back to stdout streaming: ${(err as Error).message}`);
-      }
-    }
-
     logger.info(`Starting librespot for guild: ${guildId}`);
 
     // Get the bot's Spotify access token
@@ -61,15 +29,9 @@ export class AudioService {
       '-n', `Disco-XOXO-${guildId}`,
       '-k', accessToken,
       '--ap-port', '443',
-      '--disable-discovery'
+      '--disable-discovery',
+      '--backend', 'pipe' // pipe always outputs to stdout in librespot 0.8.0
     ];
-
-    if (!isWindows && fs.existsSync(pipePath)) {
-      args.push('--backend', 'pipe', '--device', pipePath);
-    } else {
-      // Stream to stdout
-      args.push('--backend', 'pipe'); // Pipe with no device parameter or "-" streams to stdout
-    }
 
     const librespot = spawn('librespot', args, {
       stdio: ['ignore', 'pipe', 'pipe'],
@@ -87,21 +49,10 @@ export class AudioService {
     librespot.on('close', (code) => {
       logger.info(`librespot process for guild ${guildId} exited with code ${code}`);
       this.processes.delete(guildId);
-      if (fs.existsSync(pipePath)) {
-        try {
-          fs.unlinkSync(pipePath);
-        } catch {}
-      }
     });
 
-    // Return the audio stream
-    if (!isWindows && fs.existsSync(pipePath)) {
-      // Wait a bit for pipe creation and connection, then read
-      await new Promise(r => setTimeout(r, 500));
-      return fs.createReadStream(pipePath);
-    } else {
-      return librespot.stdout;
-    }
+    // Return stdout which contains the raw PCM audio
+    return librespot.stdout;
   }
 
   public static stopPlayer(guildId: string): void {
