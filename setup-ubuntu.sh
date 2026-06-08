@@ -20,7 +20,7 @@ NC='\033[0m' # No Color
 echo -e "${GREEN}================================================================${NC}"
 echo -e "${GREEN}             DISCO XOXO UBUNTU 22.04 STARTUP MANAGER             ${NC}"
 echo -e "${GREEN}================================================================${NC}"
-echo.
+echo ""
 
 # 1. Check Root Privileges
 if [ "$EUID" -ne 0 ]; then
