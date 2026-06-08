@@ -1,6 +1,7 @@
 import { spawn, ChildProcess } from 'child_process';
 import { createAudioResource, AudioResource, StreamType } from '@discordjs/voice';
 import { Readable } from 'stream';
+import prism from 'prism-media';
 import * as fs from 'fs';
 import * as path from 'path';
 import { env } from '../utils/env';
@@ -65,39 +66,26 @@ export class AudioService {
   }
 
   public static createResource(stream: Readable): AudioResource {
-    // Librespot outputs raw PCM: 44.1kHz, 16-bit, stereo, signed-integer
-    // We encode this directly into Ogg Opus format using FFmpeg for native Discord playback
-    const ffmpegArgs = [
-      '-f', 's16le',
-      '-ar', '44100',
-      '-ac', '2',
-      '-i', 'pipe:0',
-      '-c:a', 'libopus',
-      '-b:a', '128k',
-      '-vbr', 'on',
-      '-f', 'opus',
-      'pipe:1'
-    ];
-
-    const ffmpegProcess = spawn('ffmpeg', ffmpegArgs, {
-      stdio: ['pipe', 'pipe', 'pipe'] // capture stderr for debugging
+    // We encode this directly into Ogg Opus format using prism-media's FFmpeg wrapper
+    // This perfectly integrates with discord.js/voice backpressure and streams.
+    const transcoder = new prism.FFmpeg({
+      args: [
+        '-analyzeduration', '0',
+        '-loglevel', '0',
+        '-f', 's16le',
+        '-ar', '44100',
+        '-ac', '2',
+        '-i', '-',
+        '-c:a', 'libopus',
+        '-b:a', '128k',
+        '-vbr', 'on',
+        '-f', 'opus',
+      ]
     });
 
-    stream.pipe(ffmpegProcess.stdin);
+    const transcodedStream = stream.pipe(transcoder);
 
-    ffmpegProcess.stderr.on('data', (data) => {
-      const msg = data.toString().trim();
-      // Only log actual errors to prevent spam, ffmpeg logs a lot of info to stderr
-      if (msg.toLowerCase().includes('error')) {
-        logger.error(`[FFmpeg] ${msg}`);
-      }
-    });
-
-    ffmpegProcess.on('error', (err) => {
-      logger.error(`FFmpeg process failed: ${err.message}`);
-    });
-
-    return createAudioResource(ffmpegProcess.stdout, {
+    return createAudioResource(transcodedStream, {
       inputType: StreamType.OggOpus,
     });
   }
