@@ -35,7 +35,7 @@ USER_HOME=$(eval echo ~$ACTUAL_USER)
 
 echo -e "${YELLOW}[1/8] Updating Apt Repository & Basic Utilities...${NC}"
 apt update && apt upgrade -y
-apt install -y curl git build-essential pkg-config libasound2-dev ufw
+apt install -y curl git build-essential pkg-config libasound2-dev ufw libssl-dev
 
 # 2. Install Node.js v22
 echo -e "${YELLOW}[2/8] Installing Node.js v22...${NC}"
