@@ -37,7 +37,7 @@ USER_HOME=$(eval echo ~$ACTUAL_USER)
 # 2. Update System & Install Base Utilities
 echo -e "${YELLOW}[1/11] Updating Apt Repository & Basic Utilities...${NC}"
 apt update && apt upgrade -y
-apt install -y curl git build-essential pkg-config libasound2-dev ufw ffmpeg nginx certbot python3-certbot-nginx
+apt install -y curl git build-essential pkg-config libasound2-dev ufw ffmpeg nginx certbot python3-certbot-nginx libssl-dev
 
 # 3. Install Node.js v22
 echo -e "${YELLOW}[2/11] Installing Node.js v22...${NC}"
@@ -87,7 +87,7 @@ if ! command -v librespot &> /dev/null; then
   # Load cargo paths
   export PATH="$USER_HOME/.cargo/bin:$PATH"
   echo -e "${YELLOW}Building librespot from source (this might take a few minutes)...${NC}"
-  sudo -u $ACTUAL_USER -E cargo install librespot
+  sudo -u $ACTUAL_USER -E $USER_HOME/.cargo/bin/cargo install --locked librespot
   echo -e "${GREEN}✔ librespot installed successfully${NC}"
 else
   echo -e "${GREEN}✔ librespot already installed${NC}"
